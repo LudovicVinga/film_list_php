@@ -134,12 +134,23 @@ session_start();
         $db = connectToDb();
         
         // 7 - Effectuer la requête d'insertion du nouveau film dans la table 'Film'
-        dd('Continuer');
+        $request = $db->prepare("INSERT INTO film (title, actors, rating, comment, created_at, updated_at) VALUES (:title, :actors, :rating, :comment, now(), now() )");
+
+        $request->bindValue(":title", $_POST['title']);
+        $request->bindValue(":actors", $_POST['actors']);
+        $request->bindValue(":rating", $ratingRounded);
+        $request->bindValue(":comment", $_POST['comment']);
+
+        $request->execute();
+        $request->closeCursor(); // Non obligatoire.
+
         
         // 8 - Générer un message flash de succès
+        $_SESSION['success'] = "Le film a bien été ajouté.";
         
         // 9 - Rediriger l'utilisateur vers la page d'accueil
         // Puis, arreter l'éxécution du script
+        return header("Location: index.php");
         
     }
     
@@ -180,19 +191,19 @@ session_start();
                     <form method="post">
                         <div class="mb-3">
                             <label for="title">Titre du film <span class="text-danger">*</span></label>
-                            <input type="text" name="title" id="title" class="form-control mt-2" autofocus value="<?= isset($_SESSION['old']) ? old($_SESSION['old'], 'title') : ''; ?>">
+                            <input type="text" name="title" id="title" class="form-control" autofocus value="<?= isset($_SESSION['old']['title']) && $_SESSION['old']['title'] !== "" ? $_SESSION['old']['title'] : ''; unset($_SESSION['old']['title']); ?>">
                         </div>
                         <div class="mb-3">
                             <label for="actors">Nom du/des acteurs <span class="text-danger">*</span></label>
-                            <input type="text" name="actors" id="actors" class="form-control mt-2" value="<?= isset($_SESSION['actord']) ? old($_SESSION['old'], 'actors') : ''; ?>">
+                            <input type="text" name="actors" id="actors" class="form-control" value="<?= isset($_SESSION['old']['actors']) && $_SESSION['old']['actors'] !== "" ? $_SESSION['old']['actors'] : ''; unset($_SESSION['old']['actors']); ?>">
                         </div>
                         <div class="mb-3">
-                            <label for="rating">Note / 5</label>
-                            <input type="number" min="0" max="5" step=".5" name="rating" id="rating" class="form-control mt-2" value="<?= isset($_SESSION['old']) ? old($_SESSION['old'], 'rating') : ''; ?>">
+                            <label for="review">Note / 5</label>
+                            <input type="number" min="0" max="5" step=".1" name="rating" id="rating" class="form-control" value="<?= isset($_SESSION['old']['rating']) && $_SESSION['old']['rating'] !== "" ? $_SESSION['old']['rating']: ''; unset($_SESSION['old']['rating']); ?>">
                         </div>
                         <div class="mb-3">
                             <label for="comment">Laissez un commentaire</label>
-                            <textarea name="comment" id="comment" class="form-control" rows="4" value="<?= isset($_SESSION['old']) ? old($_SESSION['old'], 'comment') : ''; ?>"></textarea>
+                            <textarea name="comment" id="comment" class="form-control" rows="4"><?= isset($_SESSION['old']['comment']) && $_SESSION['old']['comment'] !== "" ? $_SESSION['old']['comment'] : ''; unset($_SESSION['old']['comment']); ?></textarea>
                         </div>
                         <div class="text-center">
                             <input type="submit" class="btn btn-primary shadow">
