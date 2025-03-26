@@ -15,6 +15,8 @@ session_start();
     $film = $request->fetchAll();
 
     // dd($film);
+        // Générons le jéton de sécurité.
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(30));
 ?>
 
 <?php require __DIR__ . "/../partials/head.php"; ?>
@@ -42,27 +44,31 @@ session_start();
                     <?php if(isset($film) && !empty($film)) : ?>
                         <?php foreach($film as $film) : ?>
                             <div class="card p-4 mb-3 shadow">
-                                <p><strong>Nom du film</strong>: <?= $film['title'] ?></p>
-                                <p><strong>Nom du/des acteurs</strong>: <?= $film['actors'] ?></p>
+                                <p><strong>Nom du film</strong>: <?= htmlspecialchars($film['title']) ?></p>
+                                <p><strong>Nom du/des acteurs</strong>: <?= htmlspecialchars($film['actors']) ?></p>
                                 <hr>
                                 <div>
-                                    <a class="text-dark" data-bs-toggle="modal" data-bs-target="#modal-<?= $film['id'] ?>" href="#"><i class="fa-solid fa-eye"></i></a>
-                                    <!-- <a href="" class="btn btn-secondary">Modifier</a>
-                                    <a href="" class="btn btn-danger">Supprimer</a> -->
+                                    <a title="Les détails du film: <?= htmlspecialchars($film['title'], ENT_QUOTES, 'UTF-8') ?>" class="text-dark mx-2" data-bs-toggle="modal" data-bs-target="#modal-<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>" href="#"><i class="fa-solid fa-eye"></i></a>
+                                    <a title="Modifier le film: <?= htmlspecialchars($film['title'], ENT_QUOTES, 'UTF-8') ?>" class="text-secondary mx-2" href="edit.php?filmId=<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>"><i class="fas fa-edit"></i></a>
+                                    <a title="Supprimer le film: <?= htmlspecialchars($film['title'], ENT_QUOTES, 'UTF-8') ?>" onclick="event.preventDefault(); return confirm('Confirmer la suppression ?') && document.querySelector('#form-delete-film-<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>').submit();" title="Supprimer" href="#" class="text-danger m-2"><i class="fa-solid fa-trash-can"></i></a>
+                                    <form action="delete.php?filmId=<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>" method="post" id="form-delete-film-<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <input type="hidden" name="filmId" value="<?= htmlspecialchars($film['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                    </form>
                                 </div>
                             </div>
 
                             <!-- Modal -->
-                            <div class="modal fade" id="modal-<?= $film['id'] ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="modal-<?= htmlspecialchars($film['id']) ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h1 class="modal-title fs-5" id="exampleModalLabel"><?= $film['title'] ?></h1>
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel"><?= htmlspecialchars($film['title']) ?></h1>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                        <p><strong>Note</strong>: <?= isset($film['rating']) && $film['rating'] !== "" ? $film['rating'] : 'Non renseignée';  ?></p>
-                                        <p><strong>Commentaire</strong>: <?= isset($film['comment']) && $film['comment'] !== "" ? $film['comment'] : 'Non renseigné';  ?></p>
+                                        <p><strong>Note</strong>: <?= isset($film['rating']) && $film['rating'] !== "" ? htmlspecialchars($film['rating']) : 'Non renseignée';  ?></p>
+                                        <p><strong>Commentaire</strong>: <?= isset($film['comment']) && $film['comment'] !== "" ? nl2br(htmlspecialchars($film['comment'])) : 'Non renseigné';  ?></p>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
